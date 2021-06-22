@@ -45,7 +45,6 @@ async def openaccount(user):
     with open('bank.json', 'w') as bank:
         json.dump(data, bank, indent=4)
 
-
 async def adjust(user, acc, amt):
     await openaccount(user)
     data = await getdata()
@@ -53,5 +52,24 @@ async def adjust(user, acc, amt):
     with open('bank.json', 'w') as bank:
         json.dump(data, bank, indent=4)
 
-
+@client.command()
+async def rob(ctx, member:discord.Member):
+    await openaccount(str(ctx.author.id))
+    await openaccount(str(member.id))
+    data = await getdata()
+    chance = random.randint(0,10)
+    robamt = random.randint(2,30)
+    if chance < 7:
+        if robamt > int(data[str(ctx.author.id)]['wallet']):
+            robamt = int(data[str(ctx.author.id)]['wallet'])
+        await ctx.send(f"You stole {robamt} coins from {str(member.display_name)}!")
+        await adjust(str(ctx.author.id),'wallet' , robamt)
+        await adjust(str(member.id), 'wallet', robamt * -1)
+    else:
+        if robamt > int(data[str(ctx.author.id)]['wallet']):
+            robamt = int(data[str(ctx.author.id)]['wallet'])
+        await ctx.send(f"You paid out {robamt} to {str(member.display_name)} for an unsuccessful robbery...")
+        await adjust(ctx.author.id, 'wallet', robamt*-1)
+        await adjust(str(member.id), 'wallet', robamt)
+        
 client.run(TOKEN)
